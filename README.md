@@ -29,6 +29,7 @@ This implementation takes this into consideration.
 
 ## Installation
 
+- Application requires Java 8. Maven is provided via the maven wrapper.
 
 - Download dependencies
 ```
