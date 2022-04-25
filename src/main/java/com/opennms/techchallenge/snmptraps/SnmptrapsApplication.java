@@ -2,8 +2,6 @@ package com.opennms.techchallenge.snmptraps;
 
 import com.opennms.techchallenge.snmptraps.exception.InternalException;
 import com.opennms.techchallenge.snmptraps.filter.Filter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -21,6 +19,8 @@ import java.util.Scanner;
  */
 @SpringBootApplication
 public class SnmptrapsApplication implements CommandLineRunner {
+    private static final String SNMP_YML = "snmp.yml";
+    private static final String TRAP_TYPE_OID_PREFIX = "trap-type-oid-prefix";
 
     @Autowired
     private Yaml yaml;
@@ -41,22 +41,39 @@ public class SnmptrapsApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        InputStream snmpInputStream = getClass().getClassLoader()
-                .getResourceAsStream("snmp.yml");
-
-        if (snmpInputStream == null) {
-            throw new InternalException("SNMP Yaml resource couldn't be found");
+        List<String> trapTypePrefixes = null;
+        try {
+            trapTypePrefixes = getTrapTypePrefixes();
+        } catch (InternalException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
 
-        Map<String, List<String>> snmpYmlProps = yaml.load(snmpInputStream);
-
-        List<String> trapTypePrefixes = snmpYmlProps.get("trap-type-oid-prefix");
-
-        System.out.print("Trap Type OID: ");
+        System.out.print("Enter Trap Type OID: ");
         Scanner scanner = new Scanner(System.in);
         String oid = scanner.nextLine();
 
-        String output = filter.process(trapTypePrefixes, oid);
-        System.out.println(output);
+        try {
+            String output = filter.process(trapTypePrefixes, oid);
+            System.out.println(output);
+        } catch (InternalException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    private List<String> getTrapTypePrefixes() {
+        InputStream snmpInputStream = getClass().getClassLoader()
+                .getResourceAsStream(SNMP_YML);
+
+        if (snmpInputStream == null) {
+            throw new InternalException("SNMP Yaml resource couldn't be found for file name: " + SNMP_YML);
+        }
+
+        Map<String, List<String>> snmpYmlProps = yaml.load(snmpInputStream);
+        if (snmpYmlProps.containsKey(TRAP_TYPE_OID_PREFIX)) {
+            return snmpYmlProps.get(TRAP_TYPE_OID_PREFIX);
+        }
+        throw new InternalException("No Trap Type OID Prefixes found for key: " + TRAP_TYPE_OID_PREFIX);
     }
 }

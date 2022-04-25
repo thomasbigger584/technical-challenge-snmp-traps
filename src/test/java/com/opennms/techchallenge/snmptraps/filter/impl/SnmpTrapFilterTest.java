@@ -60,12 +60,26 @@ class SnmpTrapFilterTest {
     }
 
     @Test
-    void testNullProvidedOidReturnsException() {
+    void testNullProvidedOidNullReturnsException() {
         List<String> prefixes = getPrefixes();
 
         boolean exceptionThrown = false;
         try {
             filter.process(prefixes, null);
+        } catch (InternalException e) {
+            assertEquals("Provided OID to filter is blank.", e.getMessage());
+            exceptionThrown = true;
+        }
+        assertTrue(exceptionThrown);
+    }
+
+    @Test
+    void testNullProvidedOidEmptyStringlReturnsException() {
+        List<String> prefixes = getPrefixes();
+
+        boolean exceptionThrown = false;
+        try {
+            filter.process(prefixes, "");
         } catch (InternalException e) {
             assertEquals("Provided OID to filter is blank.", e.getMessage());
             exceptionThrown = true;

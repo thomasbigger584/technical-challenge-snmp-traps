@@ -44,3 +44,10 @@ This implementation takes this into consideration.
 ```
 ./mvnw spring-boot:run
 ```
+
+## User Guide
+
+- Once the application starts up you will be prompted to provide the OID to filter against.
+- If you provide a valid OID then it will return with `: true` concatenated to the end.
+- If you provide an invalid OID then it will return with `: false` concatented to the end.
+- If you do not provide an OID then it will print a message and finish.
